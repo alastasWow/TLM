@@ -20,17 +20,18 @@ int sc_main (int argc, char ** argv) {
 	  +---------+	 +-------------+    +--------+
 	*/
 
-	size_t mem_size = 127;
-        Memory memory("Memory", mem_size);
-	//Generator generator1("Generator1", memory.size);
-	Generator generator1("Generator1", 255);
+	size_t mem_size = 87040;
+        Memory memory("video memory", mem_size);
+	Generator generator1("Generator1", mem_size);
+	//Generator generator1("Generator1", 255);
 	sc_core::sc_signal<bool> stock_interrupt;
 	Bus bus("Bus");
 	LCDC ecran("ecran", sc_core::sc_time(1.0/25, sc_core::SC_SEC));
 
 	/* Bob is mapped at addresses [0, 100[, i.e. ... */
-	//bus.map(memory.target, 0x10000000, memory.size);
-	bus.map(memory.target, 0x10000000, 255);
+	bus.map(memory.target, 0x10000000, 87040);
+	//bus.map(memory.target, 0x10000000, 255);
+	bus.map(ecran.target_socket,0x10015400,0x0C);
 
 	/* connect components to the bus */
 	generator1.initiator.bind(bus.target);

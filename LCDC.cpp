@@ -26,6 +26,7 @@ LCDC::LCDC(sc_module_name name, const sc_time &display_period)
 	// registers initialisation
 	addr_register = 0;
 	int_register = 0;
+	start_register = 0;
 	started = false;
 
 	// X11 Initialisation
@@ -137,16 +138,19 @@ void LCDC::init_colormap() {
 tlm::tlm_response_status LCDC::read(const ensitlm::addr_t &a,
                                     ensitlm::data_t &d) {
 	switch (a) {
-	case LCDC_ADDR_REG:
-		d = addr_register;
-		break;
-	case LCDC_INT_REG:
-		d = int_register;
-		break;
-	default:
-		cerr << name() << ": Read access outside register range!"
-		     << endl;
-		return tlm::TLM_ADDRESS_ERROR_RESPONSE;
+		case LCDC_START_REG:
+			d = start_register;
+			break;
+		case LCDC_ADDR_REG:
+			d = addr_register;
+			break;
+		case LCDC_INT_REG:
+			d = int_register;
+			break;
+		default:
+			cerr << name() << ": Read access outside register range!"
+			     << endl;
+			return tlm::TLM_ADDRESS_ERROR_RESPONSE;
 	}
 	return tlm::TLM_OK_RESPONSE;
 }
@@ -155,18 +159,23 @@ tlm::tlm_response_status LCDC::read(const ensitlm::addr_t &a,
 tlm::tlm_response_status LCDC::write(const ensitlm::addr_t &a,
                                      const ensitlm::data_t &d) {
 	switch (a) {
-	case LCDC_ADDR_REG:
-		addr_register = d;
-		break;
-	case LCDC_INT_REG:
-		int_register = d;
-		if (int_register == 0)
-			display_int.write(false);
-		break;
-	default:
-		cerr << name() << ": Write access outside register range!"
-		     << endl;
-		return tlm::TLM_ADDRESS_ERROR_RESPONSE;
+		case LCDC_START_REG:
+			start_register = d;
+			if(start_register == 1){
+				started = true;
+			}
+		case LCDC_ADDR_REG:
+			addr_register = d;
+			break;
+		case LCDC_INT_REG:
+			int_register = d;
+			if (int_register == 0)
+				display_int.write(false);
+			break;
+		default:
+			cerr << name() << ": Write access outside register range!"
+			     << endl;
+			return tlm::TLM_ADDRESS_ERROR_RESPONSE;
 	}
 	return tlm::TLM_OK_RESPONSE;
 }
