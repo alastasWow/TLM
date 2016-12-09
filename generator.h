@@ -7,11 +7,11 @@
 #include <ctime>
 #include "ensitlm.h"
 #include "bus.h"
-
+#include "LCDC_registermap.h"
 
 
 struct Generator : sc_core::sc_module {
-    
+
 	ensitlm::initiator_socket<Generator> initiator;
 	sc_core::sc_in<bool> interrupt_display;
 	void thread(void);

@@ -6,17 +6,22 @@
 #include "generator.h"
 
 using namespace std;
-#define add_memmory     0x10000000
-#define add_video       0x100010A0
-#define add_LCD         0x10015400
+#define memmory_add     0x0C
+#define video_add       0x10AC
+#define LCD_add         0x0
 #define IMG_SIZE        320*240
 
 void Generator::thread(void) {
 
 
-	for (int i = 0; i < IMG_SIZE ; i++) {
-		initiator.write (( add_video + i * 0x2),0xFFFFFFFF); //on decalle de 8 bit
+	/*for (int i = 0; i < IMG_SIZE ; i++) {
+		initiator.write (( video_add + i * 0x2),0xFFFFFFFF); //on decalle de 8 bit
+	}*/
+	for(int i = 0; i < IMG_SIZE/4; i++ ){
+		initiator.write(video_add + (i * 4 ), 0xFFFFFFFF);
 	}
+	initiator.write(LCDC_ADDR_REG , video_add);
+	initiator.write(LCDC_START_REG , 0x00000001);
 
 }
 
