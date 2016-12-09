@@ -164,6 +164,7 @@ tlm::tlm_response_status LCDC::write(const ensitlm::addr_t &a,
 			if(start_register == 1){
 				started = true;
 			}
+			break;
 		case LCDC_ADDR_REG:
 			addr_register = d;
 			break;
