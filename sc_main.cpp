@@ -41,8 +41,9 @@ int sc_main (int argc, char ** argv) {
 	bus.initiator.bind(rom.socket);
 	ecran.initiator_socket.bind(bus.target);
 	bus.initiator.bind(ecran.target_socket);
-	ecran.display_int(irq_signal);
 	generator1.interrupt_display(irq_signal);
+	ecran.display_int(irq_signal);
+
 
 	/* and start simulation */
 	sc_core::sc_start();

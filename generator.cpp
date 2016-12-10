@@ -40,6 +40,8 @@ void Generator::thread(void) {
 	}
 	initiator.write(LCDC_ADDR_REG , video_add);
 	initiator.write(LCDC_START_REG , 0x00000001);
+	sc_core::wait();
+	cout << "Validation de l'interruption, on reprends le thread";
 
 }
 
@@ -47,6 +49,7 @@ Generator::Generator(sc_core::sc_module_name Generator, size_t mem_size):
 	sc_core::sc_module(Generator), mem_size(mem_size),
 	memory(new ensitlm::data_t[mem_size / 4])
 {
+	sensitive << interrupt_display;
 	srand(std::time(0));
 	SC_THREAD(thread);
 }

@@ -28,7 +28,7 @@ LCDC::LCDC(sc_module_name name, const sc_time &display_period)
 	int_register = 0;
 	start_register = 0;
 	started = false;
-
+	sensitive << display_int;
 	// X11 Initialisation
 	width = kWidth;
 	height = kHeight;
