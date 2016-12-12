@@ -15,7 +15,9 @@ struct Generator : sc_core::sc_module {
 	ensitlm::initiator_socket<Generator> initiator;
 	sc_core::sc_in<bool> interrupt_display;
 	void thread(void);
+	void method(void);
 
+	sc_core::sc_event end_irq;
 
 	SC_HAS_PROCESS(Generator);
 	Generator(sc_core::sc_module_name Generator, size_t mem_size);

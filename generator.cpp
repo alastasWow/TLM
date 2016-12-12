@@ -13,45 +13,57 @@ using namespace std;
 #define IMG_SIZE        320*240
 
 void Generator::thread(void) {
-
-
-	/*for (int i = 0; i < IMG_SIZE ; i++) {
-		initiator.write (( video_add + i * 0x2),0xFFFFFFFF); //on decalle de 8 bit
-	}*/
-	uint32_t image[IMG_SIZE/4];
-	ensitlm::data_t d;
-	tlm::tlm_response_status status;
-	uint32_t buffer[8];
-	for (int i = 0; i<IMG_SIZE/4; i+=2){
-		status = initiator.read(rom_add + (i*2),d);
-		buffer[0] = (d & 0xF0000000);
-		buffer[1] = (d & 0x0F000000) >> 4;
-		buffer[2] = (d & 0x00F00000) >> 8;
-		buffer[3] = (d & 0x000F0000) >> 12;
-		image[i] = buffer[0] + buffer[1] + buffer[2] + buffer[3];
-		buffer[4] = (d & 0x0000F000) << 16;
-		buffer[5] = (d & 0x00000F00) << 12;
-		buffer[6] = (d & 0x000000F0) << 8;
-		buffer[7] = (d & 0x0000000F) << 4;
-		image[i+1] = buffer[4] + buffer[5] + buffer[6] + buffer[7];
+	int j = 239;
+	while(true){
+		/*for (int i = 0; i < IMG_SIZE ; i++) {
+			initiator.write (( video_add + i * 0x2),0xFFFFFFFF); //on decalle de 8 bit
+		}*/
+		uint32_t image[IMG_SIZE/4];
+		ensitlm::data_t d;
+		tlm::tlm_response_status statut;
+		uint32_t buffer[8];
+		for (int i = 0; i<IMG_SIZE/4; i+=2){
+			statut = initiator.read(rom_add + (i*2),d);
+			buffer[0] = (d & 0xF0000000);
+			buffer[1] = (d & 0x0F000000) >> 4;
+			buffer[2] = (d & 0x00F00000) >> 8;
+			buffer[3] = (d & 0x000F0000) >> 12;
+			image[i] = buffer[0] + buffer[1] + buffer[2] + buffer[3];
+			buffer[4] = (d & 0x0000F000) << 16;
+			buffer[5] = (d & 0x00000F00) << 12;
+			buffer[6] = (d & 0x000000F0) << 8;
+			buffer[7] = (d & 0x0000000F) << 4;
+			image[i+1] = buffer[4] + buffer[5] + buffer[6] + buffer[7];
+		}
+		for(int i = 0; i < IMG_SIZE/4; i++ ){
+			statut = initiator.write(video_add + (i * 4), image[(i + (j * 320 / 4)) % (IMG_SIZE / 4)]);
+		}
+		initiator.write(LCDC_ADDR_REG , video_add);
+		initiator.write(LCDC_START_REG , 0x00000001);
+		sc_core::wait(end_irq);
+		cout << "Validation de l'interruption, on reprends le thread"<< endl;
+		sc_core::wait(10000, sc_core::SC_NS);
+		initiator.write(LCDC_INT_REG, 0x00000000);
+		if(j - 1 < 0){
+			j = 239 ;
+		}else{
+			j-=1;
+		}
 	}
-	for(int i = 0; i < IMG_SIZE/4; i++ ){
-		status = initiator.write(video_add + (i *4), image[i]);
-	}
-	initiator.write(LCDC_ADDR_REG , video_add);
-	initiator.write(LCDC_START_REG , 0x00000001);
-	sc_core::wait();
-	cout << "Validation de l'interruption, on reprends le thread";
+}
 
+void Generator::method(void) {
+	end_irq.notify();
 }
 
 Generator::Generator(sc_core::sc_module_name Generator, size_t mem_size):
 	sc_core::sc_module(Generator), mem_size(mem_size),
 	memory(new ensitlm::data_t[mem_size / 4])
 {
-	sensitive << interrupt_display;
 	srand(std::time(0));
 	SC_THREAD(thread);
+	SC_METHOD(method);
+	sensitive << interrupt_display;
 }
 
 Generator::~Generator() {
