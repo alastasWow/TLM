@@ -14,40 +14,53 @@ using namespace std;
 
 void Generator::thread(void) {
 	int j = 239;
+	uint32_t increment=0xFF;
 	while(true){
-		/*for (int i = 0; i < IMG_SIZE ; i++) {
-			initiator.write (( video_add + i * 0x2),0xFFFFFFFF); //on decalle de 8 bit
-		}*/
-		uint32_t image[IMG_SIZE/4];
+		uint32_t pixel_Word;
+		uint32_t masque_image = (increment << 24) + (increment << 16) +
+			(increment << 8) + increment;
 		ensitlm::data_t d;
 		tlm::tlm_response_status statut;
-		uint32_t buffer[8];
+		uint32_t buffer[4];
+		/*for (int i = 0; i < IMG_SIZE ; i++) { version sans ROM
+			initiator.write (( video_add + i * 0x2),0xFFFFFFFF); //on decalle de 8 bit
+		}*/
 		for (int i = 0; i<IMG_SIZE/4; i+=2){
 			statut = initiator.read(rom_add + (i*2),d);
 			buffer[0] = (d & 0xF0000000);
 			buffer[1] = (d & 0x0F000000) >> 4;
 			buffer[2] = (d & 0x00F00000) >> 8;
 			buffer[3] = (d & 0x000F0000) >> 12;
-			image[i] = buffer[0] + buffer[1] + buffer[2] + buffer[3];
-			buffer[4] = (d & 0x0000F000) << 16;
-			buffer[5] = (d & 0x00000F00) << 12;
-			buffer[6] = (d & 0x000000F0) << 8;
-			buffer[7] = (d & 0x0000000F) << 4;
-			image[i+1] = buffer[4] + buffer[5] + buffer[6] + buffer[7];
+			pixel_Word = buffer[0] + buffer[1] + buffer[2] + buffer[3];
+			pixel_Word = pixel_Word & masque_image;
+			statut = initiator.write(video_add + ((( i * 4) +
+			          (j * 320 )) % (IMG_SIZE )) , pixel_Word);
+			buffer[0] = (d & 0x0000F000) << 16;
+			buffer[1] = (d & 0x00000F00) << 12;
+			buffer[2] = (d & 0x000000F0) << 8;
+			buffer[3] = (d & 0x0000000F) << 4;
+			pixel_Word = buffer[0] + buffer[1] + buffer[2] + buffer[3];
+			pixel_Word = pixel_Word & masque_image;
+			statut = initiator.write(video_add +( ((( i + 1 ) * 4) +
+				(j * 320 )) % (IMG_SIZE)) , pixel_Word);
 		}
-		for(int i = 0; i < IMG_SIZE/4; i++ ){
-			statut = initiator.write(video_add + (i * 4), image[(i + (j * 320 / 4)) % (IMG_SIZE / 4)]);
-		}
+
 		initiator.write(LCDC_ADDR_REG , video_add);
 		initiator.write(LCDC_START_REG , 0x00000001);
 		sc_core::wait(end_irq);
 		cout << "Validation de l'interruption, on reprends le thread"<< endl;
-		sc_core::wait(10000, sc_core::SC_NS);
+		sc_core::wait(10000000, sc_core::SC_NS);
 		initiator.write(LCDC_INT_REG, 0x00000000);
 		if(j - 1 < 0){
 			j = 239 ;
 		}else{
-			j-=1;
+			j += 1;
+		}
+		if(increment > 0){
+			increment --;
+		}
+		else{
+			increment = 0xFF;
 		}
 	}
 }
