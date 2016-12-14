@@ -17,8 +17,10 @@ void Generator::thread(void) {
 	uint32_t increment=0xFF;
 	while(true){
 		uint32_t pixel_Word;
+		/*pour le fondu
 		uint32_t masque_image = (increment << 24) + (increment << 16) +
 			(increment << 8) + increment;
+		 */
 		ensitlm::data_t d;
 		tlm::tlm_response_status statut;
 		uint32_t buffer[4];
@@ -32,7 +34,8 @@ void Generator::thread(void) {
 			buffer[2] = (d & 0x00F00000) >> 8;
 			buffer[3] = (d & 0x000F0000) >> 12;
 			pixel_Word = buffer[0] + buffer[1] + buffer[2] + buffer[3];
-			pixel_Word = pixel_Word & masque_image;
+			//pixel_Word = pixel_Word & masque_image;
+			// a decommenter pour obtenir le fondu noir
 			statut = initiator.write(video_add + ((( i * 4) +
 			          (j * 320 )) % (IMG_SIZE )) , pixel_Word);
 			buffer[0] = (d & 0x0000F000) << 16;
@@ -40,7 +43,8 @@ void Generator::thread(void) {
 			buffer[2] = (d & 0x000000F0) << 8;
 			buffer[3] = (d & 0x0000000F) << 4;
 			pixel_Word = buffer[0] + buffer[1] + buffer[2] + buffer[3];
-			pixel_Word = pixel_Word & masque_image;
+			//pixel_Word = pixel_Word & masque_image;
+			// a decommenter pour obtenir le fondu noir
 			statut = initiator.write(video_add +( ((( i + 1 ) * 4) +
 				(j * 320 )) % (IMG_SIZE)) , pixel_Word);
 		}
@@ -88,8 +92,8 @@ int Generator::check_status(tlm::tlm_response_status& status) {
 
 	switch (status) {
 		case tlm::TLM_OK_RESPONSE :
-			return 0;
 			cout << "transaction status : OK\n";
+			return 0;
 			break;
 		case tlm::TLM_INCOMPLETE_RESPONSE :
 			cout << "transaction status : INCOMPLETE RESPONSE\n";
