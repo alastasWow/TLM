@@ -17,7 +17,7 @@ void Generator::thread(void) {
 	uint32_t increment=0xFF;
 	while(true){
 		uint32_t pixel_Word;
-		/*pour le fondu
+		/*pour le fondu grossier
 		uint32_t masque_image = (increment << 24) + (increment << 16) +
 			(increment << 8) + increment;
 		 */
